@@ -1,7 +1,7 @@
 numpy
 torch==2.0.1
 torchvision
-catalyst
 pytorchcv
 super-image
 datasets
+lightning
