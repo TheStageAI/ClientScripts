@@ -103,7 +103,7 @@ model = LightModel()
 # ------------------------------------------------------------------------------------
 # Train
 # ------------------------------------------------------------------------------------
-trainer = pl.Trainer(limit_train_batches=100, max_epochs=20)
+trainer = pl.Trainer(limit_train_batches=100, max_epochs=40)
 trainer.fit(
     model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader
 )
@@ -111,3 +111,4 @@ trainer.fit(
 # ------------------------------------------------------------------------------------
 # Eval
 # ------------------------------------------------------------------------------------
+trainer.test(model, dataloaders=val_dataloader)
