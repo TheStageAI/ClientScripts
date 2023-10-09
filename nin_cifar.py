@@ -8,7 +8,7 @@ import lightning.pytorch as pl
 import torch.nn.functional as F
 
 
-def nin_cifar10(pretrained=True):
+def nin_cifar10(pretrained=False):
     net = get_model("nin_cifar10", pretrained=pretrained)
     net.features.stage2.dropout2 = torch.nn.Identity()
     net.features.stage3.dropout3 = torch.nn.Identity()
