@@ -111,4 +111,4 @@ trainer.fit(
 # ------------------------------------------------------------------------------------
 # Eval
 # ------------------------------------------------------------------------------------
-trainer.test(model, dataloaders=val_dataloader)
+trainer.validate(model, dataloaders=val_dataloader)
