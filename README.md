@@ -10,10 +10,10 @@ Bunch of test scripts for the platform.
 
 # CIFAR10
 ### Single gpu
-`python nin_cifar.py`
+`CUDA_VISIBLE_DEVICES=0 python nin_cifar.py`
 
 ### Multiple gpus
-`CUDA_VISIBLE_DEVICES=0,1,2,3 python nin_cifar.py --data-parallel`
+`CUDA_VISIBLE_DEVICES=0,1,2,3 python nin_cifar.py`
 
 # EDSR
 ### Train on single gpu
