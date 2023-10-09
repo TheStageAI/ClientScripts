@@ -5,7 +5,6 @@ import torchvision.transforms as transforms
 from catalyst import dl
 from pytorchcv.model_provider import get_model
 import os
-from torch_integral import IntegralWrapper, grid_tuning, TrainableGrid1D
 
 
 def nin_cifar10(pretrained=True):
