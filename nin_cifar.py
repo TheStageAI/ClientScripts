@@ -5,6 +5,8 @@ import torchvision.transforms as transforms
 from catalyst import dl
 from pytorchcv.model_provider import get_model
 import os
+import lightning.pytorch as pl
+import torch.nn.functional as F
 
 
 def nin_cifar10(pretrained=True):
@@ -47,48 +49,66 @@ loaders = {"train": train_dataloader, "valid": val_dataloader}
 # ------------------------------------------------------------------------------------
 # Model
 # ------------------------------------------------------------------------------------
-model = nin_cifar10()
+class LightModel(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        self.model = nin_cifar10()
+        self.criterion = nn.CrossEntropyLoss()
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.model(x)
+        loss = self.criterion(y_hat, y)
+        self.log("train_loss", loss)
+        return loss
+
+    def eval_step(self, batch, batch_idx, prefix: str):
+        images, target = batch
+        output = self.model(images)
+        loss_val = F.cross_entropy(output, target)
+        self.log(
+            f"{prefix}_loss",
+            loss_val,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+            prog_bar=True,
+        )
+        accuracy = (output.argmax(dim=1) == target).float().mean()
+        self.log(
+            f"{prefix}_accuracy",
+            accuracy,
+            on_step=False,
+            on_epoch=True,
+            sync_dist=True,
+            prog_bar=True,
+        )
+        return loss_val
+
+    def validation_step(self, batch, batch_idx):
+        return self.eval_step(batch, batch_idx, "val")
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
+        return optimizer
+
+    def configure_schedulers(self):
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self.optimizer, mode="min", factor=0.1, patience=3, verbose=True
+        )
+        return scheduler
+
+
+model = LightModel()
 
 # ------------------------------------------------------------------------------------
 # Train
 # ------------------------------------------------------------------------------------
-cross_entropy = nn.CrossEntropyLoss()
-log_dir = "./logs/cifar"
-runner = dl.SupervisedRunner(
-    input_key="features", output_key="logits", target_key="targets", loss_key="loss"
-)
-callbacks = [
-    dl.AccuracyCallback(
-        input_key="logits", target_key="targets", topk=(1,), num_classes=10
-    ),
-    dl.SchedulerCallback(mode="batch", loader_key="train", metric_key="loss"),
-]
-loggers = []
-epochs = 30
-
-opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0)
-epoch_len = len(train_dataloader)
-sched = torch.optim.lr_scheduler.MultiStepLR(
-    opt, [epoch_len * 2, epoch_len * 5, epoch_len * 6, epoch_len * 8], gamma=0.33
-)
-runner.train(
-    model=model,
-    criterion=cross_entropy,
-    optimizer=opt,
-    scheduler=sched,
-    loaders=loaders,
-    num_epochs=epochs,
-    callbacks=callbacks,
-    loggers=loggers,
-    logdir=log_dir,
-    valid_loader="valid",
-    valid_metric="loss",
-    verbose=True,
+trainer = pl.Trainer(limit_train_batches=100, max_epochs=20)
+trainer.fit(
+    model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader
 )
 
 # ------------------------------------------------------------------------------------
 # Eval
 # ------------------------------------------------------------------------------------
-metrics = runner.evaluate_loader(
-    model=model, loader=loaders["valid"], callbacks=callbacks[:1]
-)
