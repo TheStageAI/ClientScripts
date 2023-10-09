@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-from catalyst import dl
 from pytorchcv.model_provider import get_model
 import os
 import lightning.pytorch as pl

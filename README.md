@@ -9,15 +9,18 @@ Bunch of test scripts for the platform.
 `pip install -r requirements.txt`
 
 # CIFAR10
-## Single gpu
+### Single gpu
 `python nin_cifar.py`
 
-## Multiple gpus
+### Multiple gpus
 `CUDA_VISIBLE_DEVICES=0,1,2,3 python nin_cifar.py --data-parallel`
 
 # EDSR
-## Single gpu
+### Train on single gpu
 `CUDA_VISIBLE_DEVICES=0 python edsr.py`
 
-## Multiple gpus
+### Train on multiple gpus
 `CUDA_VISIBLE_DEVICES=0,1,2,3 python edsr.py`
+
+### Evaluate
+`python edsr.py --evaluate`
