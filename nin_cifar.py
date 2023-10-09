@@ -88,7 +88,7 @@ class LightModel(pl.LightningModule):
         return self.eval_step(batch, batch_idx, "val")
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-2)
+        optimizer = torch.optim.Adam(self.parameters(), lr=3e-4)
         return optimizer
 
     def configure_schedulers(self):
